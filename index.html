@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎁 Lists Adventure - Python Academy</title>
+<script src="https://skulpt.org/static/skulpt.min.js"></script>
+<script src="https://skulpt.org/static/skulpt-stdlib.js"></script>
+<style>
+:root {
+  --bg1: #134e4a; --bg2: #065f46; --bg3: #047857;
+  --card: rgba(255,255,255,0.97);
+  --emerald: #10b981; --gold: #f59e0b; --sky: #0ea5e9;
+  --rose: #f43f5e; --purple: #a855f7; --amber: #fbbf24;
+  --text: #1f2937; --muted: #6b7280;
+  --code-bg: #0f172a; --code-text: #34d399;
+  --success: #22c55e; --danger: #ef4444; --warning: #f59e0b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Comic Sans MS', 'Tahoma', sans-serif;
+  background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+  min-height: 100vh; display: flex; flex-direction: column;
+  color: var(--text); overflow: hidden;
+}
+body::before {
+  content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-image: 
+    radial-gradient(circle at 15% 25%, rgba(251,191,36,0.15) 3px, transparent 3px),
+    radial-gradient(circle at 85% 75%, rgba(16,185,129,0.15) 3px, transparent 3px),
+    radial-gradient(circle at 50% 50%, rgba(14,165,233,0.1) 2px, transparent 2px);
+  background-size: 120px 120px, 180px 180px, 250px 250px;
+  animation: bgFloat 30s linear infinite; pointer-events: none; z-index: 0;
+}
+@keyframes bgFloat { to { background-position: 120px 120px, -180px 180px, 250px -250px; } }
+
+.top-bar {
+  background: rgba(255,255,255,0.1); backdrop-filter: blur(15px);
+  padding: 12px 24px; display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 3px solid rgba(251,191,36,0.4); z-index: 10; position: relative;
+}
+.logo { color: white; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 12px; }
+.logo-emoji { font-size: 2rem; animation: wobble 3s ease-in-out infinite; }
+@keyframes wobble { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+
+.progress-wrap { flex: 1; margin: 0 20px; max-width: 400px; }
+.progress-bar { height: 12px; background: rgba(255,255,255,0.15); border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--emerald)); width: 0%; transition: width 0.4s; border-radius: 10px; }
+.slide-info { color: white; font-size: 1rem; font-weight: bold; }
+
+.slides-area { flex: 1; overflow-y: auto; padding: 30px 20px; position: relative; z-index: 1; }
+.slide { display: none; max-width: 1200px; margin: 0 auto; animation: slideUp 0.6s ease; }
+.slide.active { display: block; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+.card {
+  background: var(--card); border-radius: 28px; padding: 35px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.25); margin-bottom: 20px;
+  border: 3px solid rgba(251,191,36,0.2);
+}
+
+h1 { color: var(--emerald); font-size: 3rem; margin-bottom: 20px; text-align: center; text-shadow: 3px 3px 0 rgba(0,0,0,0.1); }
+h2 { color: var(--gold); font-size: 2.2rem; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+h3 { color: var(--sky); font-size: 1.5rem; margin: 18px 0 12px; }
+p { font-size: 1.2rem; line-height: 2; margin-bottom: 14px; }
+ul { padding-right: 28px; margin: 12px 0; line-height: 2.3; font-size: 1.15rem; }
+
+.big-emoji { font-size: 6rem; text-align: center; margin: 25px 0; animation: bounce 2.5s ease-in-out infinite; }
+@keyframes bounce { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-20px) scale(1.1); } }
+
+.list-visual {
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+  margin: 20px 0; padding: 20px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 20px; border: 4px dashed var(--gold);
+}
+.list-item {
+  background: white; padding: 15px 22px; border-radius: 15px;
+  border: 3px solid var(--emerald); font-size: 1.3rem; font-weight: bold;
+  position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+.list-item:hover { transform: translateY(-5px) rotate(-3deg); }
+.list-index {
+  position: absolute; top: -12px; right: -12px;
+  background: var(--rose); color: white; width: 30px; height: 30px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; font-weight: bold; border: 2px solid white;
+}
+
+.character {
+  display: inline-block; background: linear-gradient(135deg, var(--emerald), var(--sky));
+  width: 90px; height: 90px; border-radius: 50%; position: relative;
+  margin: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+.character::before { content: '📦'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3.5rem; }
+
+.speech-bubble {
+  background: white; padding: 18px 24px; border-radius: 22px;
+  border: 4px solid var(--emerald); position: relative;
+  margin: 18px 0; font-size: 1.25rem; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+.speech-bubble::after {
+  content: ''; position: absolute; bottom: -18px; right: 40px;
+  width: 0; height: 0; border-left: 18px solid transparent;
+  border-right: 18px solid transparent; border-top: 18px solid var(--emerald);
+}
+
+.code-block {
+  background: var(--code-bg); border-radius: 14px; padding: 20px;
+  font-family: 'Consolas', monospace; direction: ltr; text-align: left;
+  font-size: 1.15rem; margin: 16px 0; overflow-x: auto;
+  border: 4px solid var(--emerald); color: var(--code-text);
+  position: relative;
+}
+.code-block::before {
+  content: "🐍 Python Code"; position: absolute; top: -14px; right: 15px;
+  background: var(--emerald); color: white; padding: 3px 12px;
+  border-radius: 10px; font-size: 0.85rem; font-weight: bold;
+}
+.kw { color: #f472b6; font-weight: bold; }
+.fn { color: #fbbf24; }
+.str { color: #60a5fa; }
+.num { color: #f87171; }
+.cmt { color: #94a3b8; font-style: italic; }
+.var { color: #a78bfa; }
+.op { color: #f59e0b; }
+
+.ide { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; height: 300px; }
+.ide textarea {
+  background: var(--code-bg); color: var(--code-text);
+  border: 4px solid var(--emerald); border-radius: 14px;
+  padding: 16px; font-family: 'Consolas', monospace;
+  font-size: 1.05rem; resize: none; outline: none; direction: ltr;
+}
+.output {
+  background: #000; color: #10b981; border: 4px solid var(--gold);
+  border-radius: 14px; padding: 16px; font-family: 'Consolas', monospace;
+  font-size: 1.05rem; overflow-y: auto; direction: ltr;
+}
+
+.btn {
+  background: linear-gradient(135deg, var(--emerald), var(--sky));
+  color: white; border: none; padding: 14px 32px; font-weight: bold;
+  border-radius: 35px; cursor: pointer; font-size: 1.15rem;
+  box-shadow: 0 6px 20px rgba(16,185,129,0.5); transition: 0.3s;
+  font-family: inherit; margin: 5px;
+}
+.btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(16,185,129,0.7); }
+.btn-gold { background: linear-gradient(135deg, var(--gold), var(--amber)); box-shadow: 0 6px 20px rgba(245,158,11,0.5); }
+.btn-rose { background: linear-gradient(135deg, var(--rose), #e11d48); box-shadow: 0 6px 20px rgba(244,63,94,0.5); }
+.btn-nav { background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px); }
+.btn-nav:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
+.compare-box { background: white; border-radius: 20px; padding: 22px; border: 4px solid; text-align: center; }
+.compare-box.for { border-color: var(--sky); background: linear-gradient(135deg, #dbeafe, #fff); }
+.compare-box.while { border-color: var(--rose); background: linear-gradient(135deg, #ffe4e6, #fff); }
+.compare-box.list { border-color: var(--emerald); background: linear-gradient(135deg, #d1fae5, #fff); }
+
+.callout { padding: 20px 24px; border-radius: 18px; margin: 16px 0; border-right: 6px solid; font-size: 1.15rem; }
+.callout-tip { background: #d1fae5; border-color: var(--success); }
+.callout-warn { background: #fee2e2; border-color: var(--danger); }
+.callout-info { background: #dbeafe; border-color: var(--sky); }
+.callout-star { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: var(--gold); }
+.callout-link { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); border-color: var(--purple); }
+
+.method-card {
+  background: linear-gradient(135deg, #fff, #f0fdf4);
+  border: 3px solid var(--emerald); border-radius: 18px;
+  padding: 20px; margin: 14px 0;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+.method-name {
+  display: inline-block; background: var(--emerald); color: white;
+  padding: 6px 16px; border-radius: 10px; font-weight: bold;
+  font-family: 'Consolas', monospace; margin-bottom: 10px;
+  direction: ltr;
+}
+
+.quiz-option {
+  background: white; border: 4px solid #e5e7eb; padding: 18px 22px;
+  border-radius: 18px; margin: 12px 0; cursor: pointer; transition: 0.3s;
+  font-size: 1.15rem; font-weight: bold;
+}
+.quiz-option:hover { border-color: var(--emerald); transform: translateX(-6px); background: #f0fdf4; }
+.quiz-option.correct { border-color: var(--success); background: #d1fae5; }
+.quiz-option.wrong { border-color: var(--danger); background: #fee2e2; }
+.quiz-feedback { margin-top: 14px; padding: 16px; border-radius: 14px; display: none; font-size: 1.1rem; }
+
+.timeline {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 25px 0; flex-wrap: wrap; gap: 10px; padding: 20px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 20px;
+}
+.timeline-item {
+  background: white; padding: 12px 18px; border-radius: 12px;
+  border: 3px solid var(--emerald); text-align: center;
+  min-width: 140px; box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+.timeline-item.active { background: var(--emerald); color: white; transform: scale(1.05); }
+.timeline-arrow { font-size: 2rem; color: var(--gold); }
+
+.cheat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+.cheat-card { background: white; border: 3px solid var(--gold); border-radius: 16px; padding: 18px; }
+.cheat-card h4 { color: var(--gold); margin-bottom: 10px; font-size: 1.2rem; }
+
+.nav-bar {
+  background: rgba(255,255,255,0.1); backdrop-filter: blur(15px);
+  padding: 16px 24px; display: flex; justify-content: space-between;
+  border-top: 3px solid rgba(251,191,36,0.4); z-index: 10; position: relative;
+}
+
+.score-display {
+  position: fixed; top: 80px; left: 20px; background: var(--gold);
+  color: white; padding: 10px 20px; border-radius: 25px; font-weight: bold;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 100; display: none;
+}
+
+@media (max-width: 768px) {
+  .ide, .compare-grid, .cheat-grid { grid-template-columns: 1fr; }
+  h1 { font-size: 2rem; }
+  .list-visual { flex-direction: column; align-items: center; }
+  .timeline { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">
+    <span class="logo-emoji">🎁</span>
+    <span>Python Academy: Lists Adventure</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+  </div>
+  <div class="slide-info" id="slideInfo">1 / 20</div>
+</div>
+
+<div class="score-display" id="scoreDisplay">⭐ النقاط: <span id="score">0</span></div>
+
+<div class="slides-area">
+
+<!-- Slide 1: Cover -->
+<div class="slide active" data-slide="1">
+  <div class="card" style="text-align:center; background: linear-gradient(135deg, #ecfdf5, #fef3c7);">
+    <div class="big-emoji">🎁🐍✨</div>
+    <h1>مغامرة Lists!</h1>
+    <p style="font-size:1.5rem; color:var(--muted);">صندوق الكنز السحري في بايثون</p>
+    
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:30px;">
+      <div class="callout callout-info"><strong>🔄 مراجعة:</strong><br>For & While</div>
+      <div class="callout callout-star"><strong>🆕 جديد:</strong><br>Lists</div>
+      <div class="callout callout-link"><strong>🔗 ربط:</strong><br>المفاهيم</div>
+      <div class="callout callout-tip"><strong>🏆 مشروع:</strong><br>تطبيقي</div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">📿 For Loop</div>
+      <div class="timeline-arrow">→</div>
+      <div class="timeline-item">🎯 While Loop</div>
+      <div class="timeline-arrow">→</div>
+      <div class="timeline-item active">🎁 Lists</div>
+      <div class="timeline-arrow">→</div>
+      <div class="timeline-item">🛠️ Functions</div>
+    </div>
+
+    <div style="margin-top:30px;">
+      <div class="character"></div>
+      <div class="speech-bubble" style="display:inline-block; margin-right:-50px;">
+        أنا "Boxy" صندوق الكنز! جاهز تفتحني؟ 🎁
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 2: Review For Loop -->
+<div class="slide" data-slide="2">
+  <div class="card">
+    <h2>🔄 المراجعة: For Loop</h2>
+    <p>في المحاضرتين الأوليين، تعلمنا إن الـ <strong>For Loop</strong> بيكرر كود لعدد <strong>محدد</strong> من المرات.</p>
+    
+    <div class="compare-grid">
+      <div class="compare-box for">
+        <h3>📏 مع range()</h3>
+        <div class="code-block">
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>):
+    <span class="fn">print</span>(i)
+        </div>
+        <p>النتيجة: 0, 1, 2, 3, 4</p>
+      </div>
+      <div class="compare-box for">
+        <h3>📿 مع النصوص</h3>
+        <div class="code-block">
+<span class="kw">for</span> ch <span class="kw">in</span> <span class="str">"HI"</span>:
+    <span class="fn">print</span>(ch)
+        </div>
+        <p>النتيجة: H, I</p>
+      </div>
+    </div>
+
+    <h3>🎮 اختبر ذاكرتك:</h3>
+    <div class="ide">
+      <textarea id="rev1">for i in range(1, 6):
+    print("⭐" * i)</textarea>
+      <div class="output" id="rev1o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('rev1','rev1o')">▶ Run Code</button>
+
+    <div class="callout callout-info">
+      <strong>💡 تذكر:</strong> الـ For Loop ممتاز لما نكون <strong>عارفين العدد</strong> من البداية!
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: Review While Loop -->
+<div class="slide" data-slide="3">
+  <div class="card">
+    <h2>🔄 المراجعة: While Loop</h2>
+    <p>في المحاضرة الثالثة، تعلمنا إن الـ <strong>While Loop</strong> بيكمل <strong>طالما شرط معين صحيح</strong>.</p>
+    
+    <div class="compare-grid">
+      <div class="compare-box while">
+        <h3>🎯 مع شرط</h3>
+        <div class="code-block">
+<span class="var">x</span> = <span class="num">1</span>
+<span class="kw">while</span> x &lt;= <span class="num">3</span>:
+    <span class="fn">print</span>(x)
+    x += <span class="num">1</span>
+        </div>
+      </div>
+      <div class="compare-box while">
+        <h3>🎮 مع games</h3>
+        <div class="code-block">
+<span class="kw">while</span> guess != secret:
+    guess = <span class="fn">input</span>(<span class="str">"?"</span>)
+        </div>
+      </div>
+    </div>
+
+    <h3>🎮 اختبر ذاكرتك:</h3>
+    <div class="ide">
+      <textarea id="rev2">count = 10
+while count >= 1:
+    print("🚀", count)
+    count = count - 2
+
+print("🔥 Blast off!")</textarea>
+      <div class="output" id="rev2o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('rev2','rev2o')">▶ Run Code</button>
+
+    <div class="callout callout-warn">
+      <strong>⚠️ تذكر:</strong> دايمًا لازم نحدث المتغير عشان ما ندخلش في <strong>Infinite Loop</strong>!
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: The Problem -->
+<div class="slide" data-slide="4">
+  <div class="card">
+    <h2>🤔 المشكلة الكبيرة!</h2>
+    <p>لحد دلوقتي، كنا بنخزن <strong>قيمة واحدة</strong> في كل متغير.</p>
+    
+    <div class="code-block" style="border-color:var(--rose);">
+<span class="var">name1</span> = <span class="str">"Ahmed"</span>
+<span class="var">name2</span> = <span class="str">"Sara"</span>
+<span class="var">name3</span> = <span class="str">"Omar"</span>
+<span class="var">name4</span> = <span class="str">"Laila"</span>
+<span class="var">name5</span> = <span class="str">"Khaled"</span>
+<span class="cmt"># 😱 لو عندي 100 اسم؟ هعمل 100 متغير!</span>
+    </div>
+
+    <div class="big-emoji">😱💭</div>
+
+    <h3>⚠️ المشاكل:</h3>
+    <ul>
+      <li>📝 كود طويل جداً وممل</li>
+      <li>🔍 صعب نلاقي أو نغير قيمة</li>
+      <li>🚫 مش عملي مع الأعداد الكبيرة</li>
+      <li>🤯 صعب نعمل Loop عليهم</li>
+    </ul>
+
+    <div class="callout callout-star">
+      <strong>🌟 الحل:</strong> محتاجين <strong>صندوق سحري</strong> يحط فيه كل الأسماء في مكان واحد!
+    </div>
+
+    <div class="speech-bubble">
+      هنا بتيجي قوة الـ <strong>Lists</strong>! 🎁
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: What is List -->
+<div class="slide" data-slide="5">
+  <div class="card">
+    <h2>🎁 ما هي الـ List؟</h2>
+    <p>الـ <strong>List</strong> هي <strong>صندوق سحري</strong> يقدر يخزن <strong>كتير من القيم</strong> في مكان واحد!</p>
+    
+    <div class="big-emoji">📦✨</div>
+
+    <h3>💡 التشبيه الذهني:</h3>
+    <div class="compare-grid">
+      <div class="compare-box list">
+        <h3>🎒 شنطة المدرسة</h3>
+        <p>جواها: كتاب، قلم، ممحاة، مقلمة</p>
+        <p style="font-size:3rem;">📚✏️🧴🎒</p>
+      </div>
+      <div class="compare-box list">
+        <h3>📋 قائمة الأصدقاء</h3>
+        <p>أسماء كل أصحابك في مكان واحد</p>
+        <p style="font-size:3rem;">👫👭👬</p>
+      </div>
+    </div>
+
+    <h3>📝 أول List في حياتك:</h3>
+    <div class="code-block">
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>, <span class="str">"🍊"</span>, <span class="str">"🍇"</span>]
+    </div>
+
+    <div class="list-visual">
+      <div class="list-item"><span class="list-index">0</span>🍎</div>
+      <div class="list-item"><span class="list-index">1</span>🍌</div>
+      <div class="list-item"><span class="list-index">2</span>🍊</div>
+      <div class="list-item"><span class="list-index">3</span>🍇</div>
+    </div>
+
+    <div class="callout callout-info">
+      <strong>🔑 القواعد الذهبية:</strong>
+      <ul>
+        <li>✅ الـ List بتبدأ وتنتهي بـ <code>[]</code></li>
+        <li>✅ العناصر بتتفصل بفاصلة <code>,</code></li>
+        <li>✅ كل عنصر ليه <strong>رقم</strong> (Index)</li>
+        <li>⚠️ الترقيم بيبدأ من <strong>صفر</strong>!</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: Creating Lists -->
+<div class="slide" data-slide="6">
+  <div class="card">
+    <h2>✏️ إنشاء Lists</h2>
+    <p>تقدر تعمل List من أي نوع بيانات!</p>
+    
+    <h3>📊 أمثلة متنوعة:</h3>
+    <div class="code-block">
+<span class="cmt"># List من الأرقام</span>
+<span class="var">numbers</span> = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>]
+
+<span class="cmt"># List من النصوص</span>
+<span class="var">colors</span> = [<span class="str">"red"</span>, <span class="str">"blue"</span>, <span class="str">"green"</span>]
+
+<span class="cmt"># List من الإيموجي</span>
+<span class="var">animals</span> = [<span class="str">"🐱"</span>, <span class="str">"🐶"</span>, <span class="str">"🦁"</span>, <span class="str">"🐘"</span>]
+
+<span class="cmt"># List فاضي</span>
+<span class="var">empty</span> = []
+
+<span class="cmt"># List مختلط (متقدم)</span>
+<span class="var">mixed</span> = [<span class="str">"Ahmed"</span>, <span class="num">15</span>, <span class="str">"🎮"</span>]
+    </div>
+
+    <h3>🎮 جربها بنفسك:</h3>
+    <div class="ide">
+      <textarea id="ex1">my_friends = ["Ali", "Sara", "Omar", "Laila"]
+my_scores = [95, 87, 92, 78, 88]
+my_emojis = ["⭐", "🎉", "🏆", "💪"]
+
+print("Friends:", my_friends)
+print("Scores:", my_scores)
+print("Emojis:", my_emojis)</textarea>
+      <div class="output" id="ex1o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex1','ex1o')">▶ Run Code</button>
+
+    <div class="callout callout-tip">
+      <strong>💡 نصيحة:</strong> استخدم أسماء واضحة للـ Lists عشان تعرف جواها إيه!
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: Indexing -->
+<div class="slide" data-slide="7">
+  <div class="card">
+    <h2>🔢 الوصول للعناصر (Indexing)</h2>
+    <p>كل عنصر في الـ List ليه <strong>رقم خاص</strong> (Index) نستخدمه عشان نوصله.</p>
+    
+    <div class="list-visual">
+      <div class="list-item"><span class="list-index">0</span>🍎</div>
+      <div class="list-item"><span class="list-index">1</span>🍌</div>
+      <div class="list-item"><span class="list-index">2</span>🍊</div>
+      <div class="list-item"><span class="list-index">3</span>🍇</div>
+      <div class="list-item"><span class="list-index">4</span>🍓</div>
+    </div>
+
+    <h3>📝 الشكل:</h3>
+    <div class="code-block">
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>, <span class="str">"🍊"</span>, <span class="str">"🍇"</span>, <span class="str">"🍓"</span>]
+
+<span class="fn">print</span>(fruits[<span class="num">0</span>])  <span class="cmt"># أول عنصر</span>
+<span class="fn">print</span>(fruits[<span class="num">2</span>])  <span class="cmt"># العنصر الثالث</span>
+<span class="fn">print</span>(fruits[<span class="num">4</span>])  <span class="cmt"># آخر عنصر</span>
+    </div>
+
+    <div class="callout callout-warn">
+      <strong>⚠️ فخ مهم جداً:</strong>
+      <ul>
+        <li>🎯 الترقيم بيبدأ من <strong>0</strong> مش 1!</li>
+        <li>🎯 العنصر الأول = <code>[0]</code></li>
+        <li>🎯 العنصر التاني = <code>[1]</code></li>
+        <li>🎯 لو كتبت رقم كبير → <strong>Error!</strong></li>
+      </ul>
+    </div>
+
+    <h3>🎮 جربها:</h3>
+    <div class="ide">
+      <textarea id="ex2">colors = ["red", "blue", "green", "yellow", "purple"]
+
+print("First:", colors[0])
+print("Third:", colors[2])
+print("Last:", colors[4])
+
+# جرب تصل للـ index 1 و 3 بنفسك!</textarea>
+      <div class="output" id="ex2o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex2','ex2o')">▶ Run Code</button>
+  </div>
+</div>
+
+<!-- Slide 8: Negative Indexing -->
+<div class="slide" data-slide="8">
+  <div class="card">
+    <h2>🔙 الفهرسة السالبة (Negative Indexing)</h2>
+    <p>بايثون بتديك <strong>طريقة سحرية</strong> توصل للعناصر من الآخر!</p>
+    
+    <div class="list-visual">
+      <div class="list-item"><span class="list-index">-5</span>🍎</div>
+      <div class="list-item"><span class="list-index">-4</span>🍌</div>
+      <div class="list-item"><span class="list-index">-3</span>🍊</div>
+      <div class="list-item"><span class="list-index">-2</span>🍇</div>
+      <div class="list-item"><span class="list-index">-1</span>🍓</div>
+    </div>
+
+    <h3>📝 أمثلة:</h3>
+    <div class="code-block">
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>, <span class="str">"🍊"</span>, <span class="str">"🍇"</span>, <span class="str">"🍓"</span>]
+
+<span class="fn">print</span>(fruits[-<span class="num">1</span>])  <span class="cmt"># آخر عنصر: 🍓</span>
+<span class="fn">print</span>(fruits[-<span class="num">2</span>])  <span class="cmt"># قبل الأخير: 🍇</span>
+<span class="fn">print</span>(fruits[-<span class="num">5</span>])  <span class="cmt"># أول عنصر: 🍎</span>
+    </div>
+
+    <div class="callout callout-star">
+      <strong>🌟 متى نستخدمها؟</strong><br>
+      لما نكون عايزين <strong>آخر عنصر</strong> من غير ما نعرف طول الـ List!
+    </div>
+
+    <h3>🎮 جربها:</h3>
+    <div class="ide">
+      <textarea id="ex3">numbers = [10, 20, 30, 40, 50, 60, 70]
+
+print("Last:", numbers[-1])
+print("Before last:", numbers[-2])
+print("First using negative:", numbers[-7])</textarea>
+      <div class="output" id="ex3o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex3','ex3o')">▶ Run Code</button>
+  </div>
+</div>
+
+<!-- Slide 9: Modify Elements -->
+<div class="slide" data-slide="9">
+  <div class="card">
+    <h2>✏️ تعديل العناصر</h2>
+    <p>تقدر <strong>تغير</strong> أي عنصر في الـ List باستخدام الـ Index!</p>
+    
+    <h3>📝 الشكل:</h3>
+    <div class="code-block">
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>, <span class="str">"🍊"</span>]
+
+<span class="cmt"># نغير العنصر الأول</span>
+fruits[<span class="num">0</span>] = <span class="str">"🍓"</span>
+
+<span class="fn">print</span>(fruits)  <span class="cmt"># ["🍓", "🍌", "🍊"]</span>
+    </div>
+
+    <div class="list-visual">
+      <div class="list-item" style="background:#fee2e2;">قبل: 🍎</div>
+      <div class="list-item" style="background:#d1fae5;">بعد: 🍓</div>
+    </div>
+
+    <h3>🎮 تحدي: غير قائمة الألوان:</h3>
+    <div class="ide">
+      <textarea id="ex4">colors = ["red", "blue", "green", "yellow"]
+
+print("Before:", colors)
+
+# غير "blue" إلى "purple"
+colors[1] = "purple"
+
+# غير "yellow" إلى "orange"
+colors[3] = "orange"
+
+print("After:", colors)</textarea>
+      <div class="output" id="ex4o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex4','ex4o')">▶ Run Code</button>
+
+    <div class="callout callout-tip">
+      <strong>💡 Lists مش زي النصوص:</strong><br>
+      النصوص <strong>ما تتغيرش</strong> (Immutable)، لكن الـ Lists <strong>بتتغير</strong> (Mutable)!
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: len() Function -->
+<div class="slide" data-slide="10">
+  <div class="card">
+    <h2>📏 طول الـ List: len()</h2>
+    <p>دالة <code>len()</code> بتقولك <strong>كم عنصر</strong> في الـ List.</p>
+    
+    <h3>📝 أمثلة:</h3>
+    <div class="code-block">
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>, <span class="str">"🍊"</span>, <span class="str">"🍇"</span>]
+
+<span class="fn">print</span>(<span class="fn">len</span>(fruits))  <span class="cmt"># 4</span>
+
+<span class="var">empty</span> = []
+<span class="fn">print</span>(<span class="fn">len</span>(empty))  <span class="cmt"># 0</span>
+    </div>
+
+    <div class="callout callout-star">
+      <strong>🌟 ليه مهمة؟</strong><br>
+      عشان نعرف آخر عنصر: <code>list[len(list)-1]</code><br>
+      أو ببساطة: <code>list[-1]</code> 🎯
+    </div>
+
+    <h3>🔗 ربط مع For Loop:</h3>
+    <div class="code-block">
+<span class="var">scores</span> = [<span class="num">85</span>, <span class="num">92</span>, <span class="num">78</span>, <span class="num">95</span>, <span class="num">88</span>]
+
+<span class="cmt"># عدد العناصر</span>
+<span class="fn">print</span>(<span class="str">"عدد الدرجات:"</span>, <span class="fn">len</span>(scores))
+
+<span class="cmt"># استخدام في for loop</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(scores)):
+    <span class="fn">print</span>(<span class="str">f"Student {i}: {scores[i]}"</span>)
+    </div>
+
+    <h3>🎮 جربها:</h3>
+    <div class="ide">
+      <textarea id="ex5">animals = ["🐱", "🐶", "🦁", "🐘", "🦒"]
+
+print("Number of animals:", len(animals))
+
+for i in range(len(animals)):
+    print(f"Animal {i+1} is: {animals[i]}")</textarea>
+      <div class="output" id="ex5o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex5','ex5o')">▶ Run Code</button>
+  </div>
+</div>
+
+<!-- Slide 11: append() -->
+<div class="slide" data-slide="11">
+  <div class="card">
+    <h2>➕ إضافة عناصر: append()</h2>
+    <p>دالة <code>append()</code> بتضيف عنصر <strong>جديد في آخر</strong> الـ List.</p>
+    
+    <div class="method-card">
+      <div class="method-name">list.append(value)</div>
+      <p>بتضيف <code>value</code> في آخر الـ List.</p>
+    </div>
+
+    <h3>📝 مثال:</h3>
+    <div class="code-block">
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>]
+
+fruits.<span class="fn">append</span>(<span class="str">"🍊"</span>)
+fruits.<span class="fn">append</span>(<span class="str">"🍇"</span>)
+
+<span class="fn">print</span>(fruits)
+<span class="cmt"># ["🍎", "🍌", "🍊", "🍇"]</span>
+    </div>
+
+    <h3>🎮 مشروع: قائمة التسوق:</h3>
+    <div class="ide">
+      <textarea id="ex6">shopping = []
+
+print("Empty list:", shopping)
+
+shopping.append("🍕 Pizza")
+shopping.append("🥤 Juice")
+shopping.append("🍎 Apple")
+shopping.append("🎂 Cake")
+
+print("Shopping list:")
+for item in shopping:
+    print("-", item)
+
+print("Total items:", len(shopping))</textarea>
+      <div class="output" id="ex6o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex6','ex6o')">▶ Run Code</button>
+
+    <div class="callout callout-tip">
+      <strong>💡 حالة الاستخدام:</strong><br>
+      لما يكون عندك List فاضي وعايز تضيف عناصر واحدة واحدة!
+    </div>
+  </div>
+</div>
+
+<!-- Slide 12: remove() and pop() -->
+<div class="slide" data-slide="12">
+  <div class="card">
+    <h2>➖ حذف العناصر</h2>
+    <p>عندنا طريقتين لحذف العناصر من الـ List.</p>
+    
+    <div class="compare-grid">
+      <div class="method-card">
+        <div class="method-name">list.remove(value)</div>
+        <p>بتحذف <strong>أول عنصر</strong> قيمته مطابقة.</p>
+        <div class="code-block">
+fruits = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>, <span class="str">"🍎"</span>]
+fruits.<span class="fn">remove</span>(<span class="str">"🍎"</span>)
+<span class="cmt"># ["🍌", "🍎"]</span>
+        </div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">list.pop(index)</div>
+        <p>بتحذف العنصر في <strong>index</strong> وترجعه.</p>
+        <div class="code-block">
+fruits = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>, <span class="str">"🍊"</span>]
+fruits.<span class="fn">pop</span>(<span class="num">1</span>)
+<span class="cmt"># ["🍎", "🍊"]</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>🎮 مثال عملي:</h3>
+    <div class="ide">
+      <textarea id="ex7">todo = ["📚 Study", "🎮 Play", "🍕 Eat", "😴 Sleep"]
+print("Before:", todo)
+
+# حذف عنصر بالقيمة
+todo.remove("🎮 Play")
+print("After remove:", todo)
+
+# حذف عنصر بالموقع
+removed = todo.pop(0)
+print("Removed:", removed)
+print("After pop:", todo)
+
+# pop من غير index = آخر عنصر
+last = todo.pop()
+print("Last:", last)
+print("Final:", todo)</textarea>
+      <div class="output" id="ex7o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex7','ex7o')">▶ Run Code</button>
+
+    <div class="callout callout-warn">
+      <strong>⚠️ تحذير:</strong>
+      <ul>
+        <li>لو استخدمت <code>remove()</code> مع قيمة مش موجودة → <strong>Error!</strong></li>
+        <li>لو استخدمت <code>pop()</code> مع index غلط → <strong>Error!</strong></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 13: For Loop with Lists -->
+<div class="slide" data-slide="13">
+  <div class="card">
+    <h2>🔗 الربط: For Loop + Lists</h2>
+    <p>ده <strong>أقوى تركيبة</strong> في بايثون! بنمشي على كل عنصر في الـ List.</p>
+    
+    <div class="callout callout-link">
+      <strong>🔗 ربط بالمحاضرة الأولى:</strong><br>
+      في المحاضرة الأولى تعلمنا For Loop، دلوقتي هنطبقه على Lists!
+    </div>
+
+    <h3>📝 الشكل البسيط:</h3>
+    <div class="code-block">
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>, <span class="str">"🍊"</span>]
+
+<span class="kw">for</span> fruit <span class="kw">in</span> fruits:
+    <span class="fn">print</span>(<span class="str">"I love"</span>, fruit)
+    </div>
+
+    <h3>🎮 مثال 1: مجموع الأرقام:</h3>
+    <div class="ide">
+      <textarea id="ex8">numbers = [10, 20, 30, 40, 50]
+total = 0
+
+for num in numbers:
+    total = total + num
+    print(f"Added {num}, total = {total}")
+
+print("🏆 Final Total:", total)</textarea>
+      <div class="output" id="ex8o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex8','ex8o')">▶ Run Code</button>
+
+    <h3>🎮 مثال 2: فلترة الأرقام:</h3>
+    <div class="ide">
+      <textarea id="ex9">scores = [85, 45, 92, 38, 78, 55, 95]
+
+print("📊 All scores:")
+for score in scores:
+    print(score)
+
+print("\n✅ Passed (>= 60):")
+for score in scores:
+    if score >= 60:
+        print("✓", score)
+
+print("\n❌ Failed (< 60):")
+for score in scores:
+    if score < 60:
+        print("✗", score)</textarea>
+      <div class="output" id="ex9o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex9','ex9o')">▶ Run Code</button>
+
+    <div class="callout callout-star">
+      <strong>🌟 لاحظ:</strong> كودنا بيجمع <strong>For + List + If</strong> من المحاضرات السابقة!
+    </div>
+  </div>
+</div>
+
+<!-- Slide 14: While Loop with Lists -->
+<div class="slide" data-slide="14">
+  <div class="card">
+    <h2>🔗 الربط: While Loop + Lists</h2>
+    <p>نستخدم While Loop لما نكون <strong>مش عارفين العدد</strong> من البداية.</p>
+    
+    <div class="callout callout-link">
+      <strong>🔗 ربط بالمحاضرة الثالثة:</strong><br>
+      While Loop كان مع input، دلوقتي هنضيف Lists!
+    </div>
+
+    <h3>🎮 مثال: بناء List ديناميكي:</h3>
+    <div class="code-block">
+<span class="var">names</span> = []
+<span class="var">count</span> = <span class="num">0</span>
+
+<span class="kw">while</span> count &lt; <span class="num">3</span>:
+    name = <span class="fn">input</span>(<span class="str">"Enter name: "</span>)
+    names.<span class="fn">append</span>(name)
+    count = count + <span class="num">1</span>
+
+<span class="fn">print</span>(<span class="str">"All names:"</span>, names)
+    </div>
+
+    <h3>🎮 مثال تفاعلي (بدون input):</h3>
+    <div class="ide">
+      <textarea id="ex10">numbers = []
+n = 1
+
+while n <= 5:
+    numbers.append(n * n)  # نضيف مربع الرقم
+    print(f"Added {n}² = {n*n}")
+    n = n + 1
+
+print("\nFinal list:", numbers)</textarea>
+      <div class="output" id="ex10o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex10','ex10o')">▶ Run Code</button>
+
+    <h3>🎮 مثال: البحث عن عنصر:</h3>
+    <div class="ide">
+      <textarea id="ex11">fruits = ["🍎", "🍌", "🍊", "🍇", "🍓"]
+search = "🍊"
+found = False
+index = 0
+
+while index < len(fruits):
+    if fruits[index] == search:
+        print(f"✅ Found {search} at index {index}!")
+        found = True
+        break
+    index = index + 1
+
+if not found:
+    print(f"❌ {search} not found")</textarea>
+      <div class="output" id="ex11o">اضغط Run ▶</div>
+    </div>
+    <button class="btn" onclick="run('ex11','ex11o')">▶ Run Code</button>
+  </div>
+</div>
+
+<!-- Slide 15: Big Project 1 -->
+<div class="slide" data-slide="15">
+  <div class="card">
+    <h2>🏆 المشروع الأول: قائمة المهام</h2>
+    <p>هنعمل <strong>تطبيق حقيقي</strong> لإدارة المهام باستخدام Lists!</p>
+    
+    <div class="big-emoji">📋✨</div>
+
+    <div class="code-block">
+<span class="var">tasks</span> = []
+
+<span class="cmt"># إضافة مهام</span>
+tasks.<span class="fn">append</span>(<span class="str">"📚 Mather"</span>)
+tasks.<span class="fn">append</span>(<span class="str">"🎮 Play"</span>)
+tasks.<span class="fn">append</span>(<span class="str">"🍕 Eat"</span>)
+tasks.<span class="fn">append</span>(<span class="str">"😴 Sleep"</span>)
+
+<span class="cmt"># عرض المهام</span>
+<span class="fn">print</span>(<span class="str">"📋 My Tasks:"</span>)
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(tasks)):
+    <span class="fn">print</span>(<span class="str">f"{i+1}. {tasks[i]}"</span>)
+
+<span class="cmt"># حذف مهمة</span>
+tasks.<span class="fn">remove</span>(<span class="str">"🎮 Play"</span>)
+<span class="fn">print</span>(<span class="str">"\n✅ After removing:"</span>)
+<span class="fn">print</span>(tasks)
+    </div>
+
+    <h3>🎮 جربها وطورها:</h3>
+    <div class="ide">
+      <textarea id="proj1">todo_list = []
+
+# إضافة 5 مهام
+todo_list.append("📚 Study Math")
+todo_list.append("🏃 Exercise")
+todo_list.append("🍎 Eat healthy")
+todo_list.append("📖 Read book")
+todo_list.append("😴 Sleep early")
+
+print("📋 TODO LIST:")
+print("=" * 30)
+
+# عرض مرقم
+for i in range(len(todo_list)):
+    print(f"{i+1}. {todo_list[i]}")
+
+print("=" * 30)
+print(f"Total tasks: {len(todo_list)}")
+
+# حذف مهمة
+todo_list.remove("🏃 Exercise")
+print("\n✅ After completing Exercise:")
+for task in todo_list:
+    print("•", task)</textarea>
+      <div class="output" id="proj1o">اضغط Run ▶</div>
+    </div>
+    <button class="btn btn-gold" onclick="run('proj1','proj1o')">▶ Run Code</button>
+  </div>
+</div>
+
+<!-- Slide 16: Big Project 2 -->
+<div class="slide" data-slide="16">
+  <div class="card">
+    <h2>🏆 المشروع الثاني: نظام الدرجات</h2>
+    <p>هنعمل نظام كامل لإدارة درجات الطلاب!</p>
+    
+    <div class="big-emoji">📊🎓</div>
+
+    <h3>🎮 النظام الكامل:</h3>
+    <div class="ide">
+      <textarea id="proj2">students = ["Ahmed", "Sara", "Omar", "Laila", "Khaled"]
+scores = [85, 92, 78, 95, 88]
+
+print("📊 STUDENTS REPORT")
+print("=" * 40)
+
+# عرض كل طالب ودرجته
+for i in range(len(students)):
+    print(f"{students[i]}: {scores[i]}")
+
+print("=" * 40)
+
+# حساب المجموع والمتوسط
+total = 0
+for score in scores:
+    total = total + score
+
+average = total / len(scores)
+print(f"Total: {total}")
+print(f"Average: {average:.1f}")
+
+# أعلى وأقل درجة
+highest = 0
+lowest = 100
+
+for score in scores:
+    if score > highest:
+        highest = score
+    if score < lowest:
+        lowest = score
+
+print(f"\n🏆 Highest: {highest}")
+print(f"📉 Lowest: {lowest}")
+
+# الطلاب الناجحون
+print("\n✅ Passed students:")
+for i in range(len(students)):
+    if scores[i] >= 80:
+        print(f"  • {students[i]} ({scores[i]})")</textarea>
+      <div class="output" id="proj2o">اضغط Run ▶</div>
+    </div>
+    <button class="btn btn-gold" onclick="run('proj2','proj2o')">▶ Run Code</button>
+
+    <div class="callout callout-star">
+      <strong>🌟 تحليل المشروع:</strong>
+      <ul>
+        <li>✅ Lists: تخزين الأسماء والدرجات</li>
+        <li>✅ For Loop: المشي على العناصر</li>
+        <li>✅ If/else: الفلترة والمقارنة</li>
+        <li>✅ Math: الحسابات</li>
+        <li>✅ <strong>كل اللي اتعلمناه في مكان واحد!</strong></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 17: Big Project 3 - Game -->
+<div class="slide" data-slide="17">
+  <div class="card">
+    <h2>🎮 المشروع الثالث: لعبة الكلمات</h2>
+    <p>هنعمل لعبة بتستخدم <strong>كل المفاهيم</strong>!</p>
+    
+    <div class="big-emoji">🎯🎲</div>
+
+    <h3>🎮 لعبة: ابحث عن الكلمة</h3>
+    <div class="ide">
+      <textarea id="proj3">import random
+
+# List من الكلمات
+words = ["apple", "banana", "orange", "grape", "mango", "peach"]
+
+print("🎮 WORD HUNT GAME")
+print("=" * 30)
+print("Available words:")
+
+# عرض الكلمات مع أرقامها
+for i in range(len(words)):
+    print(f"{i+1}. {words[i]}")
+
+# اختيار كلمة عشوائية
+secret = random.choice(words)
+print(f"\n🤫 Secret word chosen!")
+
+# محاكاة التخمينات
+guesses = ["apple", "orange", "mango"]
+attempts = 0
+
+print("\n🎯 Guessing...")
+for guess in guesses:
+    attempts = attempts + 1
+    print(f"Attempt {attempts}: {guess}")
+    
+    if guess == secret:
+        print(f"🎉 CORRECT! Found '{secret}'!")
+        break
+    else:
+        print(f"❌ Wrong!")
+
+# إحصائيات
+print(f"\n📊 Stats:")
+print(f"Total words: {len(words)}")
+print(f"Attempts: {attempts}")
+print(f"Secret was: {secret}")</textarea>
+      <div class="output" id="proj3o">اضغط Run ▶</div>
+    </div>
+    <button class="btn btn-gold" onclick="run('proj3','proj3o')">▶ Run Code</button>
+
+    <div class="callout callout-link">
+      <strong>🔗 المفاهيم المستخدمة:</strong>
+      <ul>
+        <li>📦 Lists (تخزين الكلمات)</li>
+        <li>🔄 For Loop (العرض والتخمين)</li>
+        <li>🎯 If/else (المقارنة)</li>
+        <li>🎲 random.choice() (اختيار عشوائي)</li>
+        <li>📏 len() (الإحصائيات)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 18: Common Mistakes -->
+<div class="slide" data-slide="18">
+  <div class="card">
+    <h2>🐛 أخطاء شائعة وحلولها</h2>
+
+    <h3>❌ الخطأ 1: Index غلط</h3>
+    <div class="code-block" style="border-color:var(--rose);">
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>, <span class="str">"🍊"</span>]
+<span class="fn">print</span>(fruits[<span class="num">5</span>])  <span class="cmt"># ❌ IndexError!</span>
+    </div>
+    <div class="callout callout-tip">
+      <strong>✅ الحل:</strong> دايمًا تأكد إن الـ Index أصغر من <code>len(list)</code>
+    </div>
+
+    <h3>❌ الخطأ 2: نسيان []</h3>
+    <div class="code-block" style="border-color:var(--rose);">
+<span class="var">fruits</span> = <span class="str">"🍎"</span>, <span class="str">"🍌"</span>  <span class="cmt"># ❌ ده tuple مش list!</span>
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>]  <span class="cmt"># ✅ صح</span>
+    </div>
+
+    <h3>❌ الخطأ 3: remove() مع قيمة مش موجودة</h3>
+    <div class="code-block" style="border-color:var(--rose);">
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>]
+fruits.<span class="fn">remove</span>(<span class="str">"🍊"</span>)  <span class="cmt"># ❌ ValueError!</span>
+    </div>
+    <div class="callout callout-tip">
+      <strong>✅ الحل:</strong> استخدم <code>if value in list:</code> قبل الحذف
+    </div>
+
+    <h3>✅ الطريقة الآمنة:</h3>
+    <div class="code-block" style="border-color:var(--success);">
+<span class="var">fruits</span> = [<span class="str">"🍎"</span>, <span class="str">"🍌"</span>]
+<span class="kw">if</span> <span class="str">"🍊"</span> <span class="kw">in</span> fruits:
+    fruits.<span class="fn">remove</span>(<span class="str">"🍊"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"Not found!"</span>)
+    </div>
+  </div>
+</div>
+
+<!-- Slide 19: Quiz -->
+<div class="slide" data-slide="19">
+  <div class="card">
+    <h2>🎓 اختبار الفهم الشامل</h2>
+    <p>8 أسئلة لقياس فهمك الكامل!</p>
+
+    <h3>❓ السؤال 1: كيف ننشئ List؟</h3>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q1')">أ) fruits = ("🍎", "🍌")</div>
+    <div class="quiz-option" onclick="checkQuiz(this, true, 'q1')">ب) fruits = ["🍎", "🍌"]</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q1')">ج) fruits = {"🍎", "🍌"}</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q1')">د) fruits = &lt;"🍎", "🍌"&gt;</div>
+    <div class="quiz-feedback" id="fb-q1"></div>
+
+    <h3 style="margin-top:25px;">❓ السؤال 2: ما ناتج fruits[1]؟</h3>
+    <div class="code-block">fruits = ["🍎", "🍌", "🍊"]</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q2')">أ) 🍎</div>
+    <div class="quiz-option" onclick="checkQuiz(this, true, 'q2')">ب) 🍌</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q2')">ج) 🍊</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q2')">د) Error</div>
+    <div class="quiz-feedback" id="fb-q2"></div>
+
+    <h3 style="margin-top:25px;">❓ السؤال 3: كيف نضيف عنصر؟</h3>
+    <div class="quiz-option" onclick="checkQuiz(this, true, 'q3')">أ) list.append(value)</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q3')">ب) list.add(value)</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q3')">ج) list.push(value)</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q3')">د) list + value</div>
+    <div class="quiz-feedback" id="fb-q3"></div>
+
+    <h3 style="margin-top:25px;">❓ السؤال 4: ما ناتج len([1,2,3,4])؟</h3>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q4')">أ) 3</div>
+    <div class="quiz-option" onclick="checkQuiz(this, true, 'q4')">ب) 4</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q4')">ج) 5</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q4')">د) Error</div>
+    <div class="quiz-feedback" id="fb-q4"></div>
+
+    <h3 style="margin-top:25px;">❓ السؤال 5: ماذا تفعل fruits[-1]؟</h3>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q5')">أ) ترجع أول عنصر</div>
+    <div class="quiz-option" onclick="checkQuiz(this, true, 'q5')">ب) ترجع آخر عنصر</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q5')">ج) تحذف آخر عنصر</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q5')">د) Error</div>
+    <div class="quiz-feedback" id="fb-q5"></div>
+
+    <h3 style="margin-top:25px;">❓ السؤال 6: كيف نحذف "🍌" من القائمة؟</h3>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q6')">أ) fruits.delete("🍌")</div>
+    <div class="quiz-option" onclick="checkQuiz(this, true, 'q6')">ب) fruits.remove("🍌")</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q6')">ج) fruits - "🍌"</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q6')">د) delete fruits["🍌"]</div>
+    <div class="quiz-feedback" id="fb-q6"></div>
+
+    <h3 style="margin-top:25px;">❓ السؤال 7: ما ناتج الكود؟</h3>
+    <div class="code-block">
+nums = [1, 2, 3]
+<span class="kw">for</span> n <span class="kw">in</span> nums:
+    <span class="fn">print</span>(n * <span class="num">2</span>)
+    </div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q7')">أ) 1, 2, 3</div>
+    <div class="quiz-option" onclick="checkQuiz(this, true, 'q7')">ب) 2, 4, 6</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q7')">ج) [2, 4, 6]</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q7')">د) Error</div>
+    <div class="quiz-feedback" id="fb-q7"></div>
+
+    <h3 style="margin-top:25px;">❓ السؤال 8: إمتى نستخدم While مع List؟</h3>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q8')">أ) لما نعرف عدد العناصر</div>
+    <div class="quiz-option" onclick="checkQuiz(this, true, 'q8')">ب) لما نكمل بشرط معين</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q8')">ج) دايمًا</div>
+    <div class="quiz-option" onclick="checkQuiz(this, false, 'q8')">د) أبدًا</div>
+    <div class="quiz-feedback" id="fb-q8"></div>
+  </div>
+</div>
+
+<!-- Slide 20: Cheat Sheet & Homework -->
+<div class="slide" data-slide="20">
+  <div class="card" style="text-align:center; background: linear-gradient(135deg, #d1fae5, #fef3c7);">
+    <div class="big-emoji">🏆🎉🌟</div>
+    <h1>مبروك! أنت محترف Lists!</h1>
+    <p style="font-size:1.3rem;">اتعلمت أقوى مفهوم في بايثون!</p>
+
+    <h2 style="margin-top:25px;">📋 المرجع السريع</h2>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>➕ الإنشاء</h4>
+        <div class="code-block">
+lst = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]
+        </div>
+      </div>
+      <div class="cheat-card">
+        <h4>🔢 الوصول</h4>
+        <div class="code-block">
+lst[<span class="num">0</span>]  <span class="cmt"># أول</span>
+lst[-<span class="num">1</span>] <span class="cmt"># آخر</span>
+        </div>
+      </div>
+      <div class="cheat-card">
+        <h4>➕ الإضافة</h4>
+        <div class="code-block">
+lst.<span class="fn">append</span>(<span class="num">4</span>)
+        </div>
+      </div>
+      <div class="cheat-card">
+        <h4>➖ الحذف</h4>
+        <div class="code-block">
+lst.<span class="fn">remove</span>(<span class="num">2</span>)
+lst.<span class="fn">pop</span>(<span class="num">0</span>)
+        </div>
+      </div>
+      <div class="cheat-card">
+        <h4>📏 الطول</h4>
+        <div class="code-block">
+<span class="fn">len</span>(lst)
+        </div>
+      </div>
+      <div class="cheat-card">
+        <h4>🔄 التكرار</h4>
+        <div class="code-block">
+<span class="kw">for</span> x <span class="kw">in</span> lst:
+  <span class="fn">print</span>(x)
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:30px;">📝 الواجبات المنزلية</h2>
+    
+    <div class="callout callout-info" style="text-align:right;">
+      <h3>🥉 المستوى المبتدئ:</h3>
+      <p>اعمل List بـ 10 أرقام، واطبعهم كل واحد في سطر مع مربعه (number²).</p>
+    </div>
+
+    <div class="callout callout-tip" style="text-align:right;">
+      <h3>🥈 المستوى المتوسط:</h3>
+      <p>اعمل List بدرجات 5 طلاب. احسب:
+      <br>• المجموع الكلي
+      <br>• المتوسط
+      <br>• أعلى درجة
+      <br>• عدد الطلاب الناجحين (درجة ≥ 60)</p>
+    </div>
+
+    <div class="callout callout-warn" style="text-align:right;">
+      <h3>🥇 المستوى المتقدم (Boss Level):</h3>
+      <p>اعمل <strong>نظام مكتبة</strong> كامل:
+      <br>• List للكتب
+      <br>• إضافة كتاب جديد
+      <br>• حذف كتاب
+      <br>• البحث عن كتاب
+      <br>• عرض كل الكتب
+      <br>استخدم For و While و Lists معاً!</p>
+    </div>
+
+    <h2 style="margin-top:30px;">🎯 الخطوات القادمة</h2>
+    <div class="timeline">
+      <div class="timeline-item">📿 For Loop</div>
+      <div class="timeline-item">🎯 While Loop</div>
+      <div class="timeline-item">🎁 Lists ✓</div>
+      <div class="timeline-item active">🛠️ Functions</div>
+    </div>
+
+    <div style="margin-top:30px;">
+      <div class="character"></div>
+      <div class="speech-bubble" style="display:inline-block; margin-right:-50px;">
+        أنت دلوقتي جاهز للمرحلة الجاية! 💪🐍
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="nav-bar">
+  <button class="btn btn-nav" id="prevBtn" onclick="nav(-1)">➡️ السابق</button>
+  <button class="btn btn-nav" onclick="goToSlide(1)">🏠 البداية</button>
+  <button class="btn btn-nav" id="nextBtn" onclick="nav(1)">التالي ⬅️</button>
+</div>
+
+<script>
+let cur = 1;
+const total = 20;
+let score = 0;
+
+function goToSlide(n) {
+  document.querySelector(`.slide[data-slide="${cur}"]`).classList.remove('active');
+  cur = n;
+  document.querySelector(`.slide[data-slide="${cur}"]`).classList.add('active');
+  updateUI();
+  document.querySelector('.slides-area').scrollTop = 0;
+}
+
+function nav(d) {
+  const n = cur + d;
+  if (n >= 1 && n <= total) goToSlide(n);
+}
+
+function updateUI() {
+  document.getElementById('slideInfo').textContent = `${cur} / ${total}`;
+  document.getElementById('progFill').style.width = `${(cur/total)*100}%`;
+  document.getElementById('prevBtn').disabled = cur === 1;
+  document.getElementById('nextBtn').disabled = cur === total;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') nav(1);
+  if (e.key === 'ArrowRight') nav(-1);
+  if (e.key === 'Home') goToSlide(1);
+  if (e.key === 'End') goToSlide(total);
+});
+
+function outf(text) {
+  const el = document.getElementById(window._outId);
+  el.innerHTML += text.replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+}
+function builtinRead(x) {
+  if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x.filename] === undefined)
+    throw "File not found: '" + x.filename + "'";
+  return Sk.builtinFiles["files"][x.filename];
+}
+
+function run(editorId, outId) {
+  window._outId = outId;
+  const prog = document.getElementById(editorId).value;
+  const out = document.getElementById(outId);
+  out.innerHTML = '';
+  out.style.color = '#10b981';
+  
+  Sk.pre = outId;
+  Sk.configure({
+    output: outf,
+    read: builtinRead,
+    __future__: Sk.python3,
+    inputfun: (prompt) => window.prompt(prompt) || "",
+    inputfunTakesPrompt: true
+  });
+  
+  Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, prog, true))
+    .then(() => {})
+    .catch(err => {
+      out.style.color = '#ef4444';
+      out.innerHTML = "❌ " + err.toString();
+    });
+}
+
+const quizFeedback = {
+  q1: {
+    correct: "✅ صح! الـ Lists بتستخدم [] الأقواس المربعة.",
+    wrong: "❌ خطأ. Lists بتستخدم []، () للـ tuples، {} للـ dictionaries."
+  },
+  q2: {
+    correct: "✅ صح! الـ Index 1 = العنصر التاني = 🍌 (الترقيم بيبدأ من 0).",
+    wrong: "❌ خطأ. تذكر: Index 0 = أول عنصر، Index 1 = تاني عنصر."
+  },
+  q3: {
+    correct: "✅ صح! append() هي الطريقة الصحيحة لإضافة عنصر.",
+    wrong: "❌ خطأ. append() هي الدالة الصحيحة في Python."
+  },
+  q4: {
+    correct: "✅ صح! len() بترجع عدد العناصر = 4.",
+    wrong: "❌ خطأ. العد: 1, 2, 3, 4 = 4 عناصر."
+  },
+  q5: {
+    correct: "✅ صح! الفهرسة السالبة [-1] ترجع آخر عنصر.",
+    wrong: "❌ خطأ. [-1] = آخر عنصر، [-2] = قبل الأخير."
+  },
+  q6: {
+    correct: "✅ صح! remove() بتحذف العنصر بالقيمة.",
+    wrong: "❌ خطأ. الدالة الصحيحة هي remove()."
+  },
+  q7: {
+    correct: "✅ صح! كل رقم بيتضرب في 2: 1×2=2, 2×2=4, 3×2=6.",
+    wrong: "❌ خطأ. الكود بيضرب كل عنصر في 2 وبيطبعه."
+  },
+  q8: {
+    correct: "✅ صح! While Loop بنستخدمها مع الشروط، مش الأعداد المحددة.",
+    wrong: "❌ خطأ. لو عارفين العدد → For، لو في شرط → While."
+  }
+};
+
+function checkQuiz(el, isCorrect, qid) {
+  const fb = document.getElementById('fb-' + qid);
+  const parent = el.parentElement;
+  parent.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('correct', 'wrong'));
+  
+  if (isCorrect) {
+    el.classList.add('correct');
+    fb.innerHTML = '<div class="callout callout-tip">' + quizFeedback[qid].correct + '</div>';
+    if (!el.dataset.scored) {
+      score += 10;
+      document.getElementById('score').textContent = score;
+      document.getElementById('scoreDisplay').style.display = 'block';
+      el.dataset.scored = 'true';
+    }
+  } else {
+    el.classList.add('wrong');
+    fb.innerHTML = '<div class="callout callout-warn">' + quizFeedback[qid].wrong + '</div>';
+  }
+  fb.style.display = 'block';
+}
+
+updateUI();
+</script>
+
+</body>
+</html>
